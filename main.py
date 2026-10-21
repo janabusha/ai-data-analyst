@@ -1,19 +1,31 @@
 import argparse
 import pandas as pd
 
-def inspect_dataset(dataset: pd.DataFrame) -> None:
-    print(dataset.shape)
-    print(dataset.dtypes)
-    print(dataset.columns)
-    print(dataset.isna().sum())
-    print(dataset.duplicated().sum())
-    print(dataset.describe())
-    print(dataset.describe(include='str'))
-    print(dataset.head())
-
 def load_dataset(file_path: str) -> pd.DataFrame:
     dataset = pd.read_csv(file_path)
     return dataset
+
+def get_duplicate_row_count(dataset: pd.DataFrame) -> int:
+    return dataset.duplicated().sum()
+
+def get_missing_value_counts(dataset: pd.DataFrame) -> pd.Series:
+    return dataset.isna().sum()
+
+def inspect_dataset(dataset: pd.DataFrame) -> None:
+    print("Dataset Shape:", dataset.shape)
+    print("\nDataset Dtypes:")
+    print(dataset.dtypes)
+    print("\nDataset Columns:")
+    print(dataset.columns)
+    print("\nMissing Values:")
+    print(get_missing_value_counts(dataset))
+    print("\nDuplicate Rows:", get_duplicate_row_count(dataset))
+    print("\nDataset Description:")
+    print(dataset.describe())
+    print("\nDataset Description (String Columns):")
+    print(dataset.describe(include='str'))
+    print("\nFirst Few Rows:")
+    print(dataset.head())
 
 def main() -> None:
     parser = argparse.ArgumentParser()
