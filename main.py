@@ -1,7 +1,7 @@
-import pandas as pd
 import argparse
+import pandas as pd
 
-def inspect_dataset(dataset: pd.DataFrame)  -> None:
+def inspect_dataset(dataset: pd.DataFrame) -> None:
     print(dataset.shape)
     print(dataset.dtypes)
     print(dataset.columns)
@@ -12,16 +12,13 @@ def inspect_dataset(dataset: pd.DataFrame)  -> None:
     print(dataset.head())
 
 def load_dataset(file_path: str) -> pd.DataFrame:
-        dataset = pd.read_csv(file_path)
-        return dataset
-
-
-
+    dataset = pd.read_csv(file_path)
+    return dataset
 
 def main() -> None:
-    file_path = argparse.ArgumentParser()
-    file_path.add_argument("file_path", type=str, help="Path to the dataset file")
-    args = file_path.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_path", type=str, help="Path to the dataset file")
+    args = parser.parse_args()
     try:
         dataset = load_dataset(args.file_path)
         inspect_dataset(dataset)
@@ -31,7 +28,6 @@ def main() -> None:
         print(error)
     except pd.errors.ParserError as error:
         print(error)
-
 
 if __name__ == "__main__":
     main()
