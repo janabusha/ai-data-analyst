@@ -1,14 +1,25 @@
 from pathlib import Path
+from typing import BinaryIO
 import pandas as pd
 
-def load_dataset(file_path: str | Path) -> pd.DataFrame:
-	suffix = Path(file_path).suffix.lower()
+def load_dataset(file_source: str | Path | BinaryIO) -> pd.DataFrame:
+	if hasattr(file_source, "name"): #	 Check if the file_source has a 'name' attribute (e.g., file-like object)
+		source_name = file_source.name
+	else:
+		source_name = str(file_source)
+
+	suffix = Path(source_name).suffix.lower()
+
 	if suffix == '.xlsx':
-		dataset = pd.read_excel(file_path)
+		dataset = pd.read_excel(file_source)
 	elif suffix == ".csv":
-		dataset = pd.read_csv(file_path)
+		dataset = pd.read_csv(file_source)
 	else:
 		raise ValueError(f"'{suffix}' is unsupported")
+	
+	if dataset.empty:
+		raise ValueError("The dataset is empty.")
+	
 	return dataset
 
 def get_duplicate_row_count(dataset: pd.DataFrame) -> int: # returns the count of duplicate rows in the dataset.

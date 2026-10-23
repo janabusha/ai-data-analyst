@@ -19,6 +19,15 @@ def test_load_csv_dataset(tmp_path):  # Test loading a valid dataset
     assert dataset.shape == (3, 2)  
     assert dataset.columns.tolist() == ["first_name", "last_name"]
 
+def test_empty_xslx_file(tmp_path):
+    xlsx_path = tmp_path / "empty_file.xlsx"
+    empty = pd.DataFrame({
+    })
+
+    empty.to_excel(xlsx_path, index=False)
+    with pytest.raises(ValueError):
+        load_dataset(xlsx_path)
+
 def test_load_xlsx_dataset(tmp_path):  # Test loading a valid dataset
     xlsx_path = tmp_path / "names.xlsx"
     expected = pd.DataFrame({
