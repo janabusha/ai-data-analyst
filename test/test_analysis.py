@@ -5,7 +5,7 @@ import pandas as pd
 from analysis import load_dataset, get_missing_value_counts, get_duplicate_row_count, get_value_counts, get_string_columns
 from analysis import get_unique_value_counts, get_column_profile, get_duplicate_rows, get_numeric_columns
 
-def test_load_dataset(tmp_path):  # Test loading a valid dataset
+def test_load_csv_dataset(tmp_path):  # Test loading a valid dataset
     csv_path = tmp_path / "names.csv"
     with open(csv_path, 'w', newline='') as csvfile:
         fieldnames = ['first_name', 'last_name']
@@ -18,6 +18,19 @@ def test_load_dataset(tmp_path):  # Test loading a valid dataset
     dataset = load_dataset(csv_path)
     assert dataset.shape == (3, 2)  
     assert dataset.columns.tolist() == ["first_name", "last_name"]
+
+def test_load_xlsx_dataset(tmp_path):  # Test loading a valid dataset
+    xlsx_path = tmp_path / "names.xlsx"
+    expected = pd.DataFrame({
+    "name": ["Alice", "Bob"],
+    "age": [30, 25],
+    })
+
+    expected.to_excel(xlsx_path, index=False)
+    dataset = load_dataset(xlsx_path)
+    assert dataset.shape == (2,2)
+    assert dataset.columns.tolist() == ["name", "age"]
+
 
 def test_load_dataset_missing_file(tmp_path):
     with pytest.raises(FileNotFoundError):
@@ -36,6 +49,12 @@ def test_load_dataset_invalid_format(tmp_path):
         csvfile.write("name,age\nAda,30\nGrace,31,extra\n")
     with pytest.raises(pd.errors.ParserError):
         load_dataset(csv_path)
+
+def test_load_dataset_value_error(tmp_path):
+    txt_path = tmp_path / "sample.txt"
+    txt_path.write_text("some text")
+    with pytest.raises(ValueError):
+        load_dataset(txt_path)
 
 def test_get_missing_value_counts(tmp_path):
     csv_path = tmp_path / "missing_values.csv"

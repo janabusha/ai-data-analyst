@@ -42,6 +42,8 @@ def main() -> None:
 		inspect_dataset(dataset)
 	except FileNotFoundError as error:
 		print(error)
+	except ValueError as error:
+		print(error)
 	except pd.errors.EmptyDataError as error:
 		print(error)
 	except pd.errors.ParserError as error:

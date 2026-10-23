@@ -2,7 +2,13 @@ from pathlib import Path
 import pandas as pd
 
 def load_dataset(file_path: str | Path) -> pd.DataFrame:
-	dataset = pd.read_csv(file_path)
+	suffix = Path(file_path).suffix.lower()
+	if suffix == '.xlsx':
+		dataset = pd.read_excel(file_path)
+	elif suffix == ".csv":
+		dataset = pd.read_csv(file_path)
+	else:
+		raise ValueError(f"'{suffix}' is unsupported")
 	return dataset
 
 def get_duplicate_row_count(dataset: pd.DataFrame) -> int: # returns the count of duplicate rows in the dataset.
