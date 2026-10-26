@@ -2,8 +2,7 @@ import csv
 import pytest
 import pandas as pd
 
-from analysis import load_dataset, get_missing_value_counts, get_duplicate_row_count, get_value_counts, get_string_columns
-from analysis import get_unique_value_counts, get_column_profile, get_duplicate_rows, get_numeric_columns
+import analysis
 
 def test_load_csv_dataset(tmp_path):  # Test loading a valid dataset
     csv_path = tmp_path / "names.csv"
@@ -15,7 +14,7 @@ def test_load_csv_dataset(tmp_path):  # Test loading a valid dataset
         writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
         writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
 
-    dataset = load_dataset(csv_path)
+    dataset = analysis.load_dataset(csv_path)
     assert dataset.shape == (3, 2)  
     assert dataset.columns.tolist() == ["first_name", "last_name"]
 
@@ -26,7 +25,7 @@ def test_empty_xslx_file(tmp_path):
 
     empty.to_excel(xlsx_path, index=False)
     with pytest.raises(ValueError):
-        load_dataset(xlsx_path)
+        analysis.load_dataset(xlsx_path)
 
 def test_load_xlsx_dataset(tmp_path):  # Test loading a valid dataset
     xlsx_path = tmp_path / "names.xlsx"
@@ -36,34 +35,34 @@ def test_load_xlsx_dataset(tmp_path):  # Test loading a valid dataset
     })
 
     expected.to_excel(xlsx_path, index=False)
-    dataset = load_dataset(xlsx_path)
+    dataset = analysis.load_dataset(xlsx_path)
     assert dataset.shape == (2,2)
     assert dataset.columns.tolist() == ["name", "age"]
 
 
 def test_load_dataset_missing_file(tmp_path):
     with pytest.raises(FileNotFoundError):
-        load_dataset(tmp_path / "this_file_does_not_exist.csv")
+        analysis.load_dataset(tmp_path / "this_file_does_not_exist.csv")
 
 def test_load_dataset_empty_file(tmp_path):
     csv_path = tmp_path / "empty.csv"
     with open(csv_path, 'w') as csvfile:
         pass  # Create an empty file
     with pytest.raises(pd.errors.EmptyDataError):
-        load_dataset(csv_path)
+        analysis.load_dataset(csv_path)
 
 def test_load_dataset_invalid_format(tmp_path):
     csv_path = tmp_path / "invalid.csv"
     with open(csv_path, 'w') as csvfile:
         csvfile.write("name,age\nAda,30\nGrace,31,extra\n")
     with pytest.raises(pd.errors.ParserError):
-        load_dataset(csv_path)
+        analysis.load_dataset(csv_path)
 
 def test_load_dataset_value_error(tmp_path):
     txt_path = tmp_path / "sample.txt"
     txt_path.write_text("some text")
     with pytest.raises(ValueError):
-        load_dataset(txt_path)
+        analysis.load_dataset(txt_path)
 
 def test_get_missing_value_counts(tmp_path):
     csv_path = tmp_path / "missing_values.csv"
@@ -75,8 +74,8 @@ def test_get_missing_value_counts(tmp_path):
         writer.writerow({'A': 4, 'B': None, 'C': 6})
         writer.writerow({'A': None, 'B': 8, 'C': None})
 
-    dataset = load_dataset(csv_path)
-    missing_counts = get_missing_value_counts(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    missing_counts = analysis.get_missing_value_counts(dataset)
     assert missing_counts['A'] == 1
     assert missing_counts['B'] == 1
     assert missing_counts['C'] == 1
@@ -91,8 +90,8 @@ def test_get_duplicate_row_count(tmp_path):
         writer.writerow({'X': 3, 'Y': 4})
         writer.writerow({'X': 1, 'Y': 2})  # Duplicate row
 
-    dataset = load_dataset(csv_path)
-    duplicate_count = get_duplicate_row_count(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    duplicate_count = analysis.get_duplicate_row_count(dataset)
     assert duplicate_count == 1
 
 def test_get_value_counts_existent_column(tmp_path):
@@ -106,8 +105,8 @@ def test_get_value_counts_existent_column(tmp_path):
         writer.writerow({'gender': 'Male'})
         writer.writerow({'gender': None})  # Missing value
 
-    dataset = load_dataset(csv_path)
-    value_counts = get_value_counts(dataset, 'gender')
+    dataset = analysis.load_dataset(csv_path)
+    value_counts = analysis.get_value_counts(dataset, 'gender')
     assert value_counts['Male'] == 2
     assert value_counts['Female'] == 1
     assert value_counts.loc[value_counts.index.isna()].iloc[0] == 1 
@@ -121,9 +120,9 @@ def test_get_value_counts_nonexistent_column(tmp_path):
         writer.writerow({'gender': 'Male'})
         writer.writerow({'gender': 'Female'})
 
-    dataset = load_dataset(csv_path)
+    dataset = analysis.load_dataset(csv_path)
     with pytest.raises(ValueError):
-        get_value_counts(dataset, 'nonexistent_column')
+        analysis.get_value_counts(dataset, 'nonexistent_column')
 
 def test_get_string_columns(tmp_path):
     csv_path = tmp_path / "string_columns.csv"
@@ -134,8 +133,8 @@ def test_get_string_columns(tmp_path):
         writer.writerow({'name': 'Alice', 'age': 30, 'city': 'New York'})
         writer.writerow({'name': 'Bob', 'age': 25, 'city': 'Los Angeles'})
 
-    dataset = load_dataset(csv_path)
-    string_columns = get_string_columns(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    string_columns = analysis.get_string_columns(dataset)
     assert string_columns.tolist() == ["name", "city"]
 
 def test_get_unique_value_counts(tmp_path):
@@ -149,8 +148,8 @@ def test_get_unique_value_counts(tmp_path):
         writer.writerow({'A': 1, 'B': 'X'})  # Duplicate row
         writer.writerow({'A': None, 'B': 'Z'})  # Missing value
 
-    dataset = load_dataset(csv_path)
-    unique_counts = get_unique_value_counts(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    unique_counts = analysis.get_unique_value_counts(dataset)
     assert unique_counts['A'] == 3  # Unique values: 1, 2, NaN
     assert unique_counts['B'] == 3  # Unique values: X, Y, Z
 
@@ -164,8 +163,8 @@ def test_get_column_profile(tmp_path):
         writer.writerow({'age': 34, 'Sex': 'M' })
         writer.writerow({'age': None,'Sex': 'F' })
 
-    dataset = load_dataset(csv_path)
-    profile = get_column_profile(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    profile = analysis.get_column_profile(dataset)
     assert profile.shape == (2,4)
     assert profile.loc["age", "Missing Values"] == 1
     assert profile.loc["Sex", "Unique Values"] == 2
@@ -184,8 +183,8 @@ def test_get_duplicate_rows(tmp_path):
         writer.writerow({'age': 34, 'Sex': 'M' })
         writer.writerow({'age': None,'Sex': 'F' })
 
-    dataset = load_dataset(csv_path)
-    duplicates = get_duplicate_rows(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    duplicates = analysis.get_duplicate_rows(dataset)
     expected = pd.DataFrame(
         {"age": [34.0, 34.0], "Sex": ["M", "M"]},
         index=[1, 2],
@@ -201,6 +200,44 @@ def test_get_numeric_columns(tmp_path):
         writer.writerow({'name': 'Alice', 'age': 30, 'height': 165 })
         writer.writerow({'name': 'Bob', 'age': 25, 'height': 183 })
 
-    dataset = load_dataset(csv_path)
-    numeric_columns = get_numeric_columns(dataset)
+    dataset = analysis.load_dataset(csv_path)
+    numeric_columns = analysis.get_numeric_columns(dataset)
     assert numeric_columns.tolist() == ["age", "height"]
+
+def test_get_rows_with_missing_values(tmp_path):
+    csv_path = tmp_path / "missing_values.csv"
+    with open(csv_path, 'w', newline='') as csvfile:
+        fieldnames = ['name', 'age', 'height']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerow({'name': 'Alice', 'age': 30, 'height': 165 })
+        writer.writerow({'name': 'Bob', 'age': 25, 'height': 183 })
+        writer.writerow({'name': 'Anna', 'age': None, 'height': 183 })
+        writer.writerow({'name': None, 'age': 25, 'height': 12 })
+
+    dataset = analysis.load_dataset(csv_path)
+    missing_values = analysis.get_rows_with_missing_values(dataset)
+    assert missing_values.shape == (2,3)
+
+def test_get_invalid_numeric_values():
+    invalid_numeric_series = pd.Series(["10", "20", "O", None, "31.5"])
+
+    invalid_numeric = analysis.get_invalid_numeric_values(invalid_numeric_series)
+    assert invalid_numeric[2] == 'O'
+    assert invalid_numeric.index.tolist() == [2]
+
+def test_get_value_type_counts():
+    value_series = pd.Series(["active", "inactive", 0, "active", None], dtype="object")
+
+    values = analysis.get_value_type_counts(value_series)
+    assert values.at[str] == 3
+    assert values.at[int] == 1
+
+def test_get_mixed_type_columns():
+    data = pd.DataFrame({
+    "name": ["Alice", "Bob", 0, "Rihards"],
+    "age": [30, 25, 15, 28],
+    })
+
+    result = analysis.get_mixed_type_columns(data)
+    assert result == ["name"]

@@ -24,14 +24,17 @@ def inspect_dataset(dataset: pd.DataFrame) -> None:
 	print("here:")
 	print(dataset.select_dtypes(include="number")) #returns only numeric columns Dataframe
 	print(dataset.select_dtypes(exclude="number").columns) 
-	print(dataset["gender"].value_counts()) #returns counts excluding NaN values
-	print(dataset["gender"].value_counts(dropna=False)) # returns counts including NaN values
-	print(dataset["gender"].value_counts(normalize=True, dropna=False)) # returns counts as proportions including NaN values
-	print(analysis.get_value_counts(dataset, "gender")) # returns counts including NaN values
+	#print(dataset["gender"].value_counts()) #returns counts excluding NaN values
+	#print(dataset["gender"].value_counts(dropna=False)) # returns counts including NaN values
+	#print(dataset["gender"].value_counts(normalize=True, dropna=False)) # returns counts as proportions including NaN values
+	#print(analysis.get_value_counts(dataset, "gender")) # returns counts including NaN values
 	print(dataset.select_dtypes(include="str").columns) #returns only string columns Dataframe
 	print(analysis.get_column_profile(dataset)) # returns a DataFrame with data type, missing values, and unique values for each column
-	print(dataset["id"].duplicated().sum())
+	#print(dataset["id"].duplicated().sum())
 	print(analysis.get_duplicate_rows(dataset))
+	print("here:")
+	print(analysis.get_mixed_type_columns(dataset))
+
 
 def main() -> None: 
 	parser = argparse.ArgumentParser()

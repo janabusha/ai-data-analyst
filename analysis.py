@@ -53,3 +53,23 @@ def get_duplicate_rows(dataset: pd.DataFrame) -> pd.DataFrame:
 
 def get_numeric_columns(dataset: pd.DataFrame) -> pd.Index:
 	return dataset.select_dtypes(include="number").columns
+
+def get_rows_with_missing_values(dataset: pd.DataFrame) -> pd.DataFrame:
+	return dataset[dataset.isna().any(axis=1)] #axis=1 checks across the columns of each rowin any()
+
+def get_invalid_numeric_values(column : pd.Series) -> pd.Series:
+	is_non_numeric = pd.to_numeric(column, errors='coerce').isna()
+	return column[is_non_numeric & column.notna()]
+
+def get_value_type_counts(column: pd.Series) -> pd.Series:
+	return column.dropna().map(type).value_counts()
+
+def get_mixed_type_columns(dataset: pd.DataFrame) -> list[str]:
+	column_names = []
+
+	for name in dataset:
+		column_series = dataset[name]
+		if get_value_type_counts(column_series).count() > 1:
+			column_names.append(name)
+
+	return column_names
