@@ -30,10 +30,12 @@ def inspect_dataset(dataset: pd.DataFrame) -> None:
 	#print(analysis.get_value_counts(dataset, "gender")) # returns counts including NaN values
 	print(dataset.select_dtypes(include="str").columns) #returns only string columns Dataframe
 	print(analysis.get_column_profile(dataset)) # returns a DataFrame with data type, missing values, and unique values for each column
-	#print(dataset["id"].duplicated().sum())
+	#print(dataset["id"].ducplicated().sum())
 	print(analysis.get_duplicate_rows(dataset))
 	print("here:")
-	print(analysis.get_mixed_type_columns(dataset))
+	print(analysis.get_rows_with_missing_values(dataset))
+	print("there:")
+	print(analysis.get_missing_value_counts(dataset))
 
 
 def main() -> None: 

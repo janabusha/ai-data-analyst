@@ -241,3 +241,16 @@ def test_get_mixed_type_columns():
 
     result = analysis.get_mixed_type_columns(data)
     assert result == ["name"]
+
+def test_get_numeric_conversion_ratio():
+    column = pd.Series(["10", "oops", None])
+
+    assert analysis.get_numeric_conversion_ratio(column) == 0.5
+
+def test_get_suspicious_numeric_columns():
+    data = pd.DataFrame({
+    "name": ["Alice", "Bob", "Jana", "Rihards", "Anna"],
+    "age": ["12", "j", "15", "28", "14"],
+    })
+    result = analysis.get_suspicious_numeric_columns(data)
+    assert result == ["age"]

@@ -41,7 +41,7 @@ def get_unique_value_counts(dataset: pd.DataFrame) -> pd.Series:   # returns the
 
 def get_column_profile(dataset: pd.DataFrame) -> pd.DataFrame: 
 	profile = pd.DataFrame({
-		'Data Type':    dataset.dtypes,
+		"Data Type": dataset.dtypes.astype(str),
 		'Missing Values': get_missing_value_counts(dataset),
 		'Unique Values': get_unique_value_counts(dataset),
 		'Missing Percentage': get_missing_value_counts(dataset) / dataset.shape[0] * 100
@@ -55,7 +55,7 @@ def get_numeric_columns(dataset: pd.DataFrame) -> pd.Index:
 	return dataset.select_dtypes(include="number").columns
 
 def get_rows_with_missing_values(dataset: pd.DataFrame) -> pd.DataFrame:
-	return dataset[dataset.isna().any(axis=1)] #axis=1 checks across the columns of each rowin any()
+	return dataset[dataset.isna().any(axis=1)] #axis=1 checks across the columns of each row in any()
 
 def get_invalid_numeric_values(column : pd.Series) -> pd.Series:
 	is_non_numeric = pd.to_numeric(column, errors='coerce').isna()
@@ -70,6 +70,23 @@ def get_mixed_type_columns(dataset: pd.DataFrame) -> list[str]:
 	for name in dataset:
 		column_series = dataset[name]
 		if get_value_type_counts(column_series).count() > 1:
+			column_names.append(name)
+
+	return column_names
+
+def get_numeric_conversion_ratio(column: pd.Series) -> float:
+    non_missing_values = column.dropna()
+    converted_values = pd.to_numeric(non_missing_values, errors="coerce")
+    is_numeric = converted_values.notna()
+
+    return is_numeric.mean()
+
+def get_suspicious_numeric_columns( dataset: pd.DataFrame, threshold: float = 0.8) -> list[str]:
+	column_names = []
+	
+	for name in dataset:
+		column_series = dataset[name]
+		if get_numeric_conversion_ratio(column_series) >= threshold and get_numeric_conversion_ratio(column_series) < 1:
 			column_names.append(name)
 
 	return column_names
