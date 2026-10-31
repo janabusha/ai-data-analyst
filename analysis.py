@@ -100,3 +100,6 @@ def get_top_value_share(column: pd.Series) -> float | None:
 	if non_missing_values.empty:
 		return None
 	return float(non_missing_values.value_counts(normalize=True).iloc[0])
+
+def get_correlation_matrix(dataset: pd.DataFrame) -> pd.DataFrame:
+	return dataset[get_numeric_columns(dataset)].corr()

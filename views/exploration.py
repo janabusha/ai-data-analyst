@@ -112,6 +112,99 @@ def render_exploration(dataset: pd.DataFrame) -> None:
             row_2_col_1.metric("Most common", dataset[selected].value_counts(dropna=False).idxmax())
             row_2_col_2.metric("Topshare", top_share_text)
 
-
     with relationships_tab:
-        st.info("Relationship analysis is coming next.")
+        correlation_matrix = analysis.get_correlation_matrix(dataset)
+        
+        if correlation_matrix.shape[1] < 2:
+            st.info(
+            "At least two numeric columns are required "
+            "to calculate relationships."
+            )
+        else:
+            correlation_data = (
+                correlation_matrix
+                .rename_axis("variable_1")
+                .reset_index()
+                .melt(
+                    id_vars="variable_1",
+                    var_name="variable_2",
+                    value_name="correlation",
+                    )
+                )
+            column_order = correlation_matrix.columns.tolist()
+
+            chart_size = min(
+                max(len(column_order) * 100, 280),
+                700,
+            )
+
+            base_chart = alt.Chart(correlation_data).encode(
+                x=alt.X(
+                    "variable_2:N",
+                    title=None,
+                    sort=column_order,
+                    axis=alt.Axis(labelAngle=0),
+                ),
+                y=alt.Y(
+                    "variable_1:N",
+                    title=None,
+                    sort=column_order,
+                ),
+                tooltip=[
+                    alt.Tooltip("variable_1:N", title="Variable 1"),
+                    alt.Tooltip("variable_2:N", title="Variable 2"),
+                    alt.Tooltip(
+                        "correlation:Q",
+                        title="Correlation",
+                        format=".2f",
+                    ),
+                ],
+            )
+
+            colored_cells = base_chart.mark_rect(
+                cornerRadius=5,
+                stroke="#0E1117",
+                strokeWidth=4,
+            ).encode(
+                color=alt.Color(
+                    "correlation:Q",
+                    scale=alt.Scale(
+                        domain=[-1, 0, 1],
+                        range=["#806544", "#303A59", "#7183C7"],
+                    ),
+                    legend=None,
+                )
+            )
+
+            cell_values = base_chart.mark_text(
+                color="white",
+                fontSize=16,
+            ).encode(
+                text=alt.Text(
+                    "correlation:Q",
+                    format=".2f",
+                )
+            )
+
+            heatmap = (
+                (colored_cells + cell_values)
+                .properties(
+                    width=chart_size,
+                    height=chart_size,
+                )
+                .configure_view(strokeWidth=0)
+            )
+
+            with st.container(border=True):
+                title_column, range_column = st.columns(
+                    [4, 1],
+                    vertical_alignment="center",
+                )
+
+                title_column.subheader("Correlation matrix")
+                range_column.markdown("−1 to +1")
+
+                st.altair_chart(
+                    heatmap,
+                    use_container_width=False,
+                )

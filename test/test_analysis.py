@@ -259,5 +259,16 @@ def test_get_top_value_share():
     column = pd.Series(["Female", "Female", "Male", None])
 
     result = analysis.get_top_value_share(column)
-
     assert result == pytest.approx(2 / 3)
+
+def test_get_correlation_matrix():
+    data = pd.DataFrame({
+    "Height": [150, 160, 170, 180],
+    "Weight": [50, 65, 68, 80],
+    "Name": ["A", "B", "C", "D"],
+    })
+
+    result = analysis.get_correlation_matrix(data)
+    assert result.loc["Height", "Height"] == 1.00
+    assert result.loc["Weight", "Height"] == 0.973035471890234
+    assert "Name" not in result.columns
