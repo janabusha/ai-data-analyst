@@ -28,10 +28,13 @@ def get_duplicate_row_count(dataset: pd.DataFrame) -> int: # returns the count o
 def get_missing_value_counts(dataset: pd.DataFrame) -> pd.Series: # returns counts of missing values for each column in the dataset.
 	return dataset.isna().sum()
 
-def get_value_counts(dataset: pd.DataFrame, column_name: str) -> pd.Series: # returns counts including NaN values. 
+def get_value_counts(dataset: pd.DataFrame,
+                     column_name: str,
+					 normalize: bool = False,
+					 dropna: bool = False,) -> pd.Series: # returns counts including NaN values. 
 	if column_name not in dataset.columns:
 		raise ValueError(f"Column '{column_name}' does not exist in the dataset.")
-	return dataset[column_name].value_counts(dropna=False)
+	return dataset[column_name].value_counts(normalize=normalize, dropna=dropna)
 
 def get_string_columns(dataset: pd.DataFrame) -> pd.Index: # returns the names of columns with string data types.
 	return dataset.select_dtypes(include="str").columns
@@ -90,3 +93,10 @@ def get_suspicious_numeric_columns( dataset: pd.DataFrame, threshold: float = 0.
 			column_names.append(name)
 
 	return column_names
+
+def get_top_value_share(column: pd.Series) -> float | None:
+	non_missing_values = column.dropna()
+
+	if non_missing_values.empty:
+		return None
+	return float(non_missing_values.value_counts(normalize=True).iloc[0])

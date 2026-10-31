@@ -35,7 +35,7 @@ def inspect_dataset(dataset: pd.DataFrame) -> None:
 	print("here:")
 	print(analysis.get_rows_with_missing_values(dataset))
 	print("there:")
-	print(analysis.get_missing_value_counts(dataset))
+	print(analysis.get_top_value_share(dataset["Gender"]))
 
 
 def main() -> None: 

@@ -254,3 +254,10 @@ def test_get_suspicious_numeric_columns():
     })
     result = analysis.get_suspicious_numeric_columns(data)
     assert result == ["age"]
+
+def test_get_top_value_share():
+    column = pd.Series(["Female", "Female", "Male", None])
+
+    result = analysis.get_top_value_share(column)
+
+    assert result == pytest.approx(2 / 3)

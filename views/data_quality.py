@@ -5,7 +5,7 @@ import analysis
 
 
 def render_data_quality(dataset: pd.DataFrame) -> None:
-
+    st.subheader("Data Quality")
     n_duplicated_rows = analysis.get_duplicate_row_count(dataset)
     column_profile = analysis.get_column_profile(dataset)
     rows_with_missing_values = analysis.get_rows_with_missing_values(dataset)

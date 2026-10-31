@@ -27,14 +27,17 @@ def render_overview(dataset: pd.DataFrame) -> None:
 		st.subheader("Data Preview")
 		st.dataframe(display_dataset)
 	with information_column:
-		st.subheader("Data Health")
-		st.metric("Missing Values", n_missing_values)
-		st.metric("Duplicate Rows", n_duplicated_rows)
-		st.metric("Type Consistency", type_status)
-		
-		st.subheader("Data Structure")
-		st.metric("Rows", n_rows)
-		st.metric("Columns", n_columns)
-		st.metric("Numeric Columns", n_numeric_columns)
-		st.metric("Text Columns", n_string_columns)
-		st.metric("Other Columns", n_other_columns)
+		with st.container(border=True):
+			st.subheader("Data Health")
+			st.metric("Missing Values", n_missing_values)
+			st.metric("Duplicate Rows", n_duplicated_rows)
+			st.metric("Type Consistency", type_status)
+		with st.container(border=True):
+			st.subheader("Data Structure")
+			row_1_col_1, row_1_col_2 = st.columns(2)
+			row_2_col_1, row_2_col_2 = st.columns(2)
+			row_1_col_1.metric("Rows", n_rows)
+			row_1_col_2.metric("Columns", n_columns)
+			row_2_col_1.metric("Numeric Columns", n_numeric_columns)
+			row_2_col_2.metric("Text Columns", n_string_columns)
+			st.metric("Other Columns", n_other_columns)

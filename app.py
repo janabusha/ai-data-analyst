@@ -40,7 +40,7 @@ try:
 			data_quality.render_data_quality(dataset)
 
 		with exploration_tab:
-			st.info("Exploration features are coming soon.")
+			exploration.render_exploration(dataset)
 
 		with advisor_tab:
 			st.info("ML Model Advisor is coming soon.")
