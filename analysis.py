@@ -101,5 +101,71 @@ def get_top_value_share(column: pd.Series) -> float | None:
 		return None
 	return float(non_missing_values.value_counts(normalize=True).iloc[0])
 
-def get_correlation_matrix(dataset: pd.DataFrame) -> pd.DataFrame:
-	return dataset[get_numeric_columns(dataset)].corr()
+def get_correlation_matrix(
+    dataset: pd.DataFrame,
+    included_identifiers: list[str] | None = None,
+	) -> pd.DataFrame:
+	identifiers_to_exclude = []
+	identifiers = get_likely_identifier_columns(dataset)
+	
+	if included_identifiers is None:
+		included_identifiers = []
+
+	for identifier in identifiers:
+		if identifier not in included_identifiers:
+			identifiers_to_exclude.append(identifier)
+
+	analysis_columns = get_numeric_columns(dataset).difference(identifiers_to_exclude, sort=False)
+	return dataset[analysis_columns].corr()
+
+def get_likely_identifier_columns(dataset: pd.DataFrame,) -> list[str]:
+	possible_id = []
+
+	for name in dataset.columns:
+		if ("id" == name.lower() 
+		    or name.lower().endswith("_id") 
+			or name.lower().startswith("unnamed")
+		):
+			possible_id.append(name)
+	return possible_id
+
+def get_strongest_relationships(correlation_matrix: pd.DataFrame,) -> pd.DataFrame:
+    relationships = []
+    columns = correlation_matrix.columns
+
+    for first_index in range(len(columns)):
+        for second_index in range(first_index + 1, len(columns)):
+            first_column = columns[first_index]
+            second_column = columns[second_index]
+
+            correlation = correlation_matrix.loc[
+                first_column,
+                second_column,
+            ]
+
+            if pd.isna(correlation):
+                continue
+
+            relationships.append({
+                "Column 1": first_column,
+                "Column 2": second_column,
+                "Correlation": correlation,
+                "Strength": abs(correlation),
+            })
+
+    relationships_dataframe = pd.DataFrame(relationships)
+
+    if relationships_dataframe.empty:
+        return pd.DataFrame(
+            columns=["Column 1", "Column 2", "Correlation"]
+        )
+
+    strongest_relationships = (
+        relationships_dataframe
+        .sort_values("Strength", ascending=False)
+        .head(3)
+        .drop(columns="Strength")
+        .reset_index(drop=True)
+    )
+
+    return strongest_relationships

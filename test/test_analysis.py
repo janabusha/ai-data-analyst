@@ -272,3 +272,66 @@ def test_get_correlation_matrix():
     assert result.loc["Height", "Height"] == 1.00
     assert result.loc["Weight", "Height"] == 0.973035471890234
     assert "Name" not in result.columns
+
+def test_get_likely_identifier_columns():
+    data = pd.DataFrame({
+    "customer_id": [1, 2, 3, 4],
+    "Product_Id": [50, 65, 68, 80],
+    "Name": ["A", "B", "C", "D"],
+    "id": [1, 2, 3, 4],
+    "Unnamed: 0": [0, 1, 2, 3],
+    "middle_name": ["A", "B", "C", "D"],
+    "paid_amount": [10, 20, 30, 40],    
+    })
+
+    list_of_ids = analysis.get_likely_identifier_columns(data)
+    assert list_of_ids[0] == 'customer_id'
+    assert list_of_ids[1] == 'Product_Id'
+    assert list_of_ids[2] == 'id'
+    assert list_of_ids[3] == 'Unnamed: 0'
+    assert list_of_ids == ['customer_id', 'Product_Id', 'id', 'Unnamed: 0']
+
+def test_correlation_matrix_excludes_identifiers():
+    data = pd.DataFrame({
+        "id": [1, 2, 3, 4],
+        "Age": [20, 30, 40, 50],
+        "Income": [2000, 3000, 4000, 5000],
+    })
+
+    result = analysis.get_correlation_matrix(data)
+
+    assert result.columns.tolist() == ["Age", "Income"]
+    assert result.index.tolist() == ["Age", "Income"]
+
+def test_correlation_matrix_can_include_selected_identifier():
+    data = pd.DataFrame({
+        "customer_id": [1, 2, 3, 4],
+        "product_id": [10, 20, 30, 40],
+        "Revenue": [100, 120, 90, 150],
+    })
+
+    result = analysis.get_correlation_matrix(
+        data,
+        included_identifiers=["customer_id"],
+    )
+
+    assert result.columns.tolist() == [
+        "customer_id",
+        "Revenue",
+    ]
+
+def test_get_strongest_relationships():
+    correlation_matrix = pd.DataFrame(
+        {
+            "A": [1.0, -0.95, 0.20],
+            "B": [-0.95, 1.0, 0.70],
+            "C": [0.20, 0.70, 1.0],
+        },
+        index=["A", "B", "C"],
+    )
+
+    result = analysis.get_strongest_relationships(correlation_matrix)
+
+    assert result.iloc[0]["Column 1"] == "A"
+    assert result.iloc[0]["Column 2"] == "B"
+    assert result.iloc[0]["Correlation"] == pytest.approx(-0.95)
