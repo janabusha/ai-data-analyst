@@ -5,7 +5,7 @@ import analysis
 from views import overview
 from views import data_quality
 from views import exploration
-from views import ml_advisor
+from views import ask_your_data
 
 st.set_page_config(
     page_title="Intelligent Data Analysis Assistant",
@@ -25,7 +25,7 @@ overview_tab, quality_tab, exploration_tab, advisor_tab = st.tabs([
 	"Overview",
 	"Data Quality",
 	"Exploration",
-	"ML Advisor",
+	"Ask Your Data",
 ])
 
 try:
@@ -43,7 +43,7 @@ try:
 			exploration.render_exploration(dataset)
 
 		with advisor_tab:
-			st.info("ML Model Advisor is coming soon.")
+			ask_your_data.render_ask_your_data(dataset)
 
 except FileNotFoundError as error:
 	st.error(str(error))

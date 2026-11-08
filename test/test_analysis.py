@@ -335,3 +335,16 @@ def test_get_strongest_relationships():
     assert result.iloc[0]["Column 1"] == "A"
     assert result.iloc[0]["Column 2"] == "B"
     assert result.iloc[0]["Correlation"] == pytest.approx(-0.95)
+
+def test_get_numeric_summary():
+    data = pd.DataFrame({
+        "customer_id": [1, 2, 3, 4],
+        "age": [45, 20, 23, 36],
+        "Revenue": [100, 120, 90, 150],
+    })
+
+    result = analysis.get_numeric_summary(data)
+
+    assert "customer_id" not in result.index
+    assert result.loc["age", "max"]  == 45
+    assert result.loc["Revenue", "min"] == 90

@@ -169,3 +169,15 @@ def get_strongest_relationships(correlation_matrix: pd.DataFrame,) -> pd.DataFra
     )
 
     return strongest_relationships
+
+def get_numeric_summary(dataset: pd.DataFrame) -> pd.DataFrame:
+    """Return summary statistics for numeric analysis columns."""
+    numeric_columns = get_numeric_columns(dataset)
+    identifiers = get_likely_identifier_columns(dataset)
+
+    analysis_columns = numeric_columns.drop(
+        identifiers,
+        errors="ignore",
+    )
+
+    return dataset[analysis_columns].describe().transpose()
