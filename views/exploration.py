@@ -15,9 +15,13 @@ def render_exploration(dataset: pd.DataFrame) -> None:
     ])
 
     with numeric_tab:
-        numeric_columns = analysis.get_numeric_columns(dataset)
+        numeric_columns = [
+            column
+            for column in analysis.get_numeric_columns(dataset)
+            if dataset[column].notna().any()
+        ]
 
-        if numeric_columns.empty:
+        if not numeric_columns:
             st.info("This dataset does not contain any numeric columns.")
         else:
             selected = st.selectbox(
@@ -52,9 +56,9 @@ def render_exploration(dataset: pd.DataFrame) -> None:
             row_3_col_1, row_3_col_2 = st.columns(2)
 
             row_1_col_1.metric("Missing Values", dataset[selected].isna().sum())
-            row_1_col_2.metric("Mean", dataset[selected].mean().round(1))
-            row_2_col_1.metric("Median", dataset[selected].median().round(1))
-            row_2_col_2.metric("Standard Deviation", dataset[selected].std().round(1))
+            row_1_col_2.metric("Mean", round(dataset[selected].mean(), 1))
+            row_2_col_1.metric("Median", round(dataset[selected].median(), 1))
+            row_2_col_2.metric("Standard Deviation",round(dataset[selected].std(), 1))
             row_3_col_1.metric("Minimum", dataset[selected].min())
             row_3_col_2.metric("Maximum", dataset[selected].max())
     

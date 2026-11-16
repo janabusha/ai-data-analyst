@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import BinaryIO
 import pandas as pd
+import streamlit as st
 
 def load_dataset(file_source: str | Path | BinaryIO) -> pd.DataFrame:
 	if hasattr(file_source, "name"): #	 Check if the file_source has a 'name' attribute (e.g., file-like object)
@@ -129,7 +130,7 @@ def get_likely_identifier_columns(dataset: pd.DataFrame,) -> list[str]:
 			possible_id.append(name)
 	return possible_id
 
-def get_strongest_relationships(correlation_matrix: pd.DataFrame,) -> pd.DataFrame:
+def get_strongest_relationships(correlation_matrix: pd.DataFrame) -> pd.DataFrame:
     relationships = []
     columns = correlation_matrix.columns
 
@@ -171,7 +172,6 @@ def get_strongest_relationships(correlation_matrix: pd.DataFrame,) -> pd.DataFra
     return strongest_relationships
 
 def get_numeric_summary(dataset: pd.DataFrame) -> pd.DataFrame:
-    """Return summary statistics for numeric analysis columns."""
     numeric_columns = get_numeric_columns(dataset)
     identifiers = get_likely_identifier_columns(dataset)
 
@@ -181,3 +181,36 @@ def get_numeric_summary(dataset: pd.DataFrame) -> pd.DataFrame:
     )
 
     return dataset[analysis_columns].describe().transpose()
+
+
+def get_visualization_profile(
+    dataset: pd.DataFrame,
+	) -> list[dict]:
+    profile = []
+
+    for column in dataset.columns:
+        usable_values = dataset[column].dropna()
+
+        # Cannot create a useful chart from these columns.
+        if usable_values.empty:
+            continue
+
+        if usable_values.nunique() <= 1:
+            continue
+
+        unique_values = usable_values.nunique()
+
+        profile.append(
+            {
+                "name": column,
+                "dtype": str(dataset[column].dtype),
+                "unique_values": unique_values,
+                "unique_percentage": round(
+                    unique_values / len(dataset) * 100,
+                    2,
+                ),
+                "missing_values": dataset[column].isna().sum(),
+            }
+        )
+
+    return profile

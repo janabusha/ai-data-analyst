@@ -7,7 +7,6 @@ from ollama import chat
 
 MODEL_NAME = "qwen3.5:4b"
 
-
 # Create tools that can use the uploaded dataset.
 def create_advisor_tools(dataset: pd.DataFrame) -> dict:
 
@@ -146,7 +145,7 @@ def render_ask_your_data(dataset: pd.DataFrame) -> None:
     chat_column, insights_column = st.columns([2, 1])
 
     with insights_column:
-        st.subheader("✨ Findings")
+        st.subheader("Findings")
 
         st.caption(
             "AI-generated summary based on Python-computed results. "
