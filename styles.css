@@ -488,3 +488,319 @@ div[data-testid="stTabs"] [role="tab"]::after {
         margin: 1rem 0;
     }
 }
+/* ---------- Data-quality summary cards ---------- */
+
+.quality-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+
+    margin: 1.25rem 0 1.75rem;
+}
+
+.quality-card {
+    position: relative;
+
+    min-width: 0;
+    min-height: 138px;
+    padding: 1.15rem 4.5rem 1.15rem 1.25rem;
+
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+}
+
+.quality-card-content {
+    min-width: 0;
+}
+
+.quality-card-title {
+    margin-bottom: 0.45rem;
+
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.quality-card-value {
+    color: var(--text);
+    font-size: 1.8rem;
+    font-weight: 750;
+    line-height: 1.15;
+}
+
+.quality-card-description {
+    margin-top: 0.35rem;
+
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.quality-card-icon {
+    position: absolute;
+    top: 1.15rem;
+    right: 1.15rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+}
+
+.quality-card-icon svg {
+    width: 23px !important;
+    height: 23px !important;
+}
+
+/* Informational completeness card */
+.quality-card-neutral .quality-card-icon {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+/* Healthy result */
+.quality-card-healthy .quality-card-icon {
+    background: #e5f6ea;
+    color: #2f9147;
+}
+
+/* Result requiring attention */
+.quality-card-warning {
+    border-color: #f0d99c;
+}
+
+.quality-card-warning .quality-card-icon {
+    background: #fff1c7;
+    color: #b87300;
+}
+
+/* Result with a serious completeness problem */
+.quality-card-danger {
+    border-color: #e9aaa5;
+    background: #fffafa;
+}
+
+.quality-card-danger .quality-card-icon {
+    background: #fde2df;
+    color: #b42318;
+}
+
+/* Two cards per row on medium screens */
+@media (max-width: 1100px) {
+    .quality-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* One card per row on small screens */
+@media (max-width: 600px) {
+    .quality-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Column profile table ---------- */
+
+/* Keep Streamlit's Markdown element from shrinking to the HTML content. */
+div[data-testid="stElementContainer"]:has(.column-profile-table-wrapper),
+div[data-testid="stMarkdownContainer"]:has(.column-profile-table-wrapper) {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.column-profile-table-wrapper {
+    display: block;
+    box-sizing: border-box;
+
+    width: 100%;
+    max-width: none;
+    margin-top: 1rem;
+    overflow-x: auto;
+
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: transparent;
+}
+
+.column-profile-table {
+    width: 100%;
+    min-width: 680px;
+
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+/* Table header */
+
+.column-profile-table th {
+    padding: 0.55rem 0.75rem;
+
+    border: none;
+    border-bottom: 1px solid #e3e8e6;
+
+    background: #f7f8fa;
+    color: var(--text-muted);
+
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Table cells */
+
+.column-profile-table td {
+    padding: 0.45rem 0.75rem;
+
+    border: none;
+    border-bottom: 1px solid #edf0ef;
+
+    color: var(--text);
+    font-size: 0.86rem;
+    line-height: 1.15;
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* Normal rows */
+
+.column-profile-table tbody tr {
+    background:  #ffffff;
+}
+
+/* Warning rows */
+
+.column-profile-table tbody tr.profile-row-warning {
+    background: #fff9ef;
+}
+
+/* Danger rows */
+
+.column-profile-table tbody tr.profile-row-danger {
+    background: #fff5f4;
+}
+
+/* Remove the border from the final row */
+
+.column-profile-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Column names */
+
+.profile-column-name {
+    font-weight: 700;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* Status badges */
+
+.profile-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+
+    padding: 0.25rem 0.45rem;
+    border-radius: 8px;
+
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.profile-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 18px;
+    height: 18px;
+
+    border: 1.8px solid currentColor;
+    border-radius: 50%;
+}
+
+.profile-status-icon svg {
+    width: 10px !important;
+    height: 10px !important;
+}
+
+.profile-status-healthy {
+    color: #258b4a;
+    background: #e5f6eb;
+}
+
+.profile-status-warning {
+    color: #b66b00;
+    background: #fff0cd;
+}
+
+.profile-status-danger {
+    color: #b42318;
+    background: #fde2df;
+}
+
+/* Narrow screens */
+
+@media (max-width: 1100px) {
+    .column-profile-table-wrapper {
+        margin-top: 0.75rem;
+        border-radius: 12px;
+        overflow-x: auto;
+    }
+
+    .column-profile-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: auto;
+    }
+
+    .column-profile-table th,
+    .column-profile-table td {
+        padding: 0.55rem 0.5rem;
+        font-size: 0.76rem;
+    }
+
+    /* Hide Unique values on narrow screens */
+
+    .column-profile-table th:nth-child(4),
+    .column-profile-table td:nth-child(4) {
+        display: none;
+    }
+
+    .profile-column-name {
+        max-width: 8rem;
+    }
+
+    .profile-status {
+        gap: 0.2rem;
+        padding: 0.22rem 0.4rem;
+        font-size: 0.68rem;
+    }
+
+    .profile-status-icon {
+        width: 0.8rem;
+        height: 0.8rem;
+    }
+}
+
+/* Allow horizontal scrolling on small screens */
+@media (max-width: 700px) {
+    .column-profile-table-wrapper {
+        border-radius: 12px;
+    }
+
+    .column-profile-table th,
+    .column-profile-table td {
+        padding: 0.45rem 0.4rem;
+        font-size: 0.72rem;
+    }
+}

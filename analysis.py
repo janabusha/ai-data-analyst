@@ -43,14 +43,70 @@ def get_string_columns(dataset: pd.DataFrame) -> pd.Index: # returns the names o
 def get_unique_value_counts(dataset: pd.DataFrame) -> pd.Series:   # returns the count of unique values for each column in the dataset.
 	return dataset.nunique(dropna=False)
 
-def get_column_profile(dataset: pd.DataFrame) -> pd.DataFrame: 
-	profile = pd.DataFrame({
-		"Data Type": dataset.dtypes.astype(str),
-		'Missing Values': get_missing_value_counts(dataset),
-		'Unique Values': get_unique_value_counts(dataset),
-		'Missing Percentage': get_missing_value_counts(dataset) / dataset.shape[0] * 100
-	})
-	return profile
+def get_column_profile(dataset: pd.DataFrame) -> pd.DataFrame:
+    # Calculate reusable column statistics.
+    missing_counts = get_missing_value_counts(dataset)
+    unique_counts = get_unique_value_counts(dataset)
+    row_count = len(dataset)
+
+    # Combine all columns with detected type problems.
+    type_issue_columns = (
+        set(get_mixed_type_columns(dataset))
+        | set(get_suspicious_numeric_columns(dataset))
+    )
+
+    # Calculate the percentage of missing values per column.
+    missing_percentages = (
+        missing_counts / row_count * 100
+        if row_count > 0
+        else pd.Series(0.0, index=dataset.columns)
+    )
+
+    detected_types = []
+    completeness_values = []
+    statuses = []
+
+    for column in dataset.columns:
+        dtype = dataset[column].dtype
+        missing_count = int(missing_counts[column])
+        has_missing_values = missing_count > 0
+        has_type_issue = column in type_issue_columns
+
+        # Convert pandas types into readable names.
+        if has_type_issue:
+            detected_type = "Mixed"
+        elif pd.api.types.is_bool_dtype(dtype):
+            detected_type = "Boolean"
+        elif pd.api.types.is_integer_dtype(dtype):
+            detected_type = "Integer"
+        elif pd.api.types.is_float_dtype(dtype):
+            detected_type = "Decimal"
+        elif pd.api.types.is_datetime64_any_dtype(dtype):
+            detected_type = "Date / Time"
+        elif pd.api.types.is_string_dtype(dtype):
+            detected_type = "String"
+        else:
+            detected_type = str(dtype)
+
+        detected_types.append(detected_type)
+        if has_missing_values and has_type_issue:
+            status = "2 issues"
+        elif has_missing_values:
+            status = f"{missing_count:,} missing"
+        elif has_type_issue:
+            status = "Mixed type"
+        else:
+            status = "OK"
+        statuses.append(status)
+
+    profile = pd.DataFrame({
+        "Data Type": detected_types,
+        "Complete": 100 - missing_percentages,
+        "Missing Values": missing_counts,
+        "Unique Values": unique_counts,
+        "Status": statuses,
+    })
+    return profile
 
 def get_duplicate_rows(dataset: pd.DataFrame) -> pd.DataFrame:
 	return dataset[dataset.duplicated(keep=False)]

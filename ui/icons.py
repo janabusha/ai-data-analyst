@@ -22,6 +22,7 @@ def load_icon(filename: str) -> str:
 DATABASE_ICON = load_icon("dataset.svg")
 FINDINGS_ICON = load_icon("clipboard_check.svg")
 CHART_ICON = load_icon("chart.svg")
+SHIELD_ICON = load_icon("shield.svg")
 
 # Finding icons
 WARNING_ICON = load_icon("warning.svg")

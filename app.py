@@ -71,7 +71,6 @@ with upload_column:
         "Upload dataset",
         type=["csv", "xlsx"],
         label_visibility="collapsed",
-        key="dataset_uploader",
     )
 
 
