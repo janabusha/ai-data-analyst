@@ -181,6 +181,7 @@ def get_likely_identifier_columns(dataset: pd.DataFrame,) -> list[str]:
 	for name in dataset.columns:
 		if ("id" == name.lower() 
 		    or name.lower().endswith("_id") 
+		    or name.lower().endswith(" id") 
 			or name.lower().startswith("unnamed")
 		):
 			possible_id.append(name)

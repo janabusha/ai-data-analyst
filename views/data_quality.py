@@ -104,7 +104,7 @@ def render_data_quality(dataset: pd.DataFrame) -> None:
                 f"Across {total_type_issues} columns"
             )
     if completeness >= 95:
-        completeness_status = "success"
+        completeness_status = "healthy"
         completeness_icon = SUCCESS_ICON
     elif completeness >= 80:
         completeness_status = "warning"
