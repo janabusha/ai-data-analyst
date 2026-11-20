@@ -26,6 +26,10 @@ def render_findings(dataset: pd.DataFrame) -> None:
     correlation_matrix = analysis.get_correlation_matrix(dataset)
     stongest_relationship = analysis.get_strongest_relationships(correlation_matrix)
 
+    stongest_relationship = stongest_relationship[stongest_relationship["Correlation"].abs() >= 0.10]
+    if stongest_relationship.empty:
+       no_corr_text = "No meaningful linear relationships were detected."
+
     missing_columns = (
         missing_columns[missing_columns > 0]
         .sort_values(ascending=False)
@@ -100,7 +104,7 @@ def render_findings(dataset: pd.DataFrame) -> None:
         corr_status = "warning"
         corr_icon = RELATIONSHIP_ICON
         corr_title = "No correlations found."
-        corr_text = "At least two numeric columns are required to calculate relationships."
+        corr_text = no_corr_text
 
     # Choose the correct status and message for stored types.
     if mixed_type_columns:
@@ -230,6 +234,15 @@ def render_overview(dataset: pd.DataFrame) -> None:
         visualization_profile = analysis.get_visualization_profile(dataset)
         chart_choice = choose_visualization_with_ai(visualization_profile)
 
+        x_column = chart_choice.get("x")
+        y_column = chart_choice.get("y")
+
+        if (
+            x_column not in dataset.columns
+            or y_column not in dataset.columns
+        ):
+            chart_choice = None
+
     preview_column, findings_column = st.columns(
         [2.2, 1],
         gap="medium",
@@ -294,11 +307,16 @@ def render_overview(dataset: pd.DataFrame) -> None:
 
     with st.container(border=True):
         render_subheader("Quick overview", CHART_ICON)
-        
-        chart_visuals.display_chart(
-        	dataset,
-            chart_choice,
-        )
+
+        if chart_choice is None:
+            st.info(
+            "A suitable chart could not be generated for this dataset."
+            )
+        else:
+            chart_visuals.display_chart(
+                dataset,
+                chart_choice,
+            )
         st.markdown(
 			"""
 			<div class="chart-disclaimer">
