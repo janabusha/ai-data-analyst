@@ -984,67 +984,298 @@ div[data-baseweb="popover"] ul {
         margin-bottom: 0.4rem;
     }
 }
-from html import escape
+/* =========================================================
+   ASK YOUR DATA
+   ========================================================= */
 
-import pandas as pd
+/* ---------- Page heading ---------- */
 
+.advisor-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
 
-def create_relationship_list(
-    relationships: pd.DataFrame,
-    identifiers_excluded: bool,
-) -> str:
-    """Create a styled list of the strongest relationships."""
+.advisor-heading-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    relationship_rows = []
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: 0 0 3.5rem;
 
-    for rank, (_, relationship) in enumerate(
-        relationships.head(3).iterrows(),
-        start=1,
-    ):
-        column_1 = escape(str(relationship["Column 1"]))
-        column_2 = escape(str(relationship["Column 2"]))
-        correlation = float(relationship["Correlation"])
+    border-radius: 0.9rem;
+    background: var(--primary-soft);
+    color: var(--primary);
 
-        value_class = (
-            "relationship-value-positive"
-            if correlation >= 0
-            else "relationship-value-negative"
-        )
+    font-size: 1.55rem;
+    font-weight: 700;
+}
 
-        relationship_rows.append(
-            f'<div class="relationship-row">'
-            f'<div class="relationship-rank">{rank}</div>'
-            f'<div class="relationship-columns">'
-            f'<span title="{column_1}">{column_1}</span>'
-            f'<span class="relationship-arrow">&#8596;</span>'
-            f'<span title="{column_2}">{column_2}</span>'
-            f'</div>'
-            f'<div class="relationship-value {value_class}">'
-            f'{correlation:.2f}'
-            f'</div>'
-            f'</div>'
-        )
+.advisor-heading h1 {
+    margin: 0;
 
-    identifier_notice = ""
+    color: var(--text);
+    font-size: 2.1rem;
+    line-height: 1.1;
+}
 
-    if identifiers_excluded:
-        identifier_notice = (
-            '<div class="relationship-notice">'
-            '<div class="relationship-notice-icon">i</div>'
-            '<div>'
-            'Identifier-like columns are excluded automatically.'
-            '</div>'
-            '</div>'
-        )
+.advisor-description {
+    margin: 0 0 1.25rem;
 
-    return (
-        '<div class="relationship-summary">'
-        '<div class="relationship-list">'
-        f'{"".join(relationship_rows)}'
-        '</div>'
-        f'{identifier_notice}'
-        '<div class="relationship-disclaimer">'
-        'Correlation shows association, not causation.'
-        '</div>'
-        '</div>'
-    )
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* ---------- Dataset badge ---------- */
+
+.advisor-dataset-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    padding: 0.42rem 0.75rem;
+
+    border: 1px solid var(--border);
+    border-radius: 0.7rem;
+    background: #ffffff;
+
+    color: var(--text);
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+/* ---------- Clear-chat button ---------- */
+
+.st-key-clear-advisor-chat {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.25rem;
+}
+
+.st-key-clear-advisor-chat button {
+    width: auto !important;
+    min-width: 7.5rem !important;
+    min-height: 2.7rem !important;
+    padding: 0.5rem 1rem !important;
+
+    border: 1px solid var(--border) !important;
+    border-radius: 0.75rem !important;
+    background: #ffffff !important;
+
+    color: var(--muted) !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease;
+}
+
+.st-key-clear-advisor-chat button:hover {
+    border-color: var(--primary) !important;
+    background: var(--primary-soft) !important;
+    color: var(--primary) !important;
+}
+
+/* ---------- Suggested questions ---------- */
+
+.advisor-suggestion-label {
+    margin: 1.5rem 0 0.55rem;
+
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.st-key-advisor-suggestions button {
+    min-height: 3rem !important;
+    padding: 0.65rem 0.85rem !important;
+
+    border: 1px solid var(--border) !important;
+    border-radius: 0.85rem !important;
+    background: #ffffff !important;
+
+    color: var(--text) !important;
+    font-size: 0.86rem !important;
+    font-weight: 600 !important;
+
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease,
+        transform 150ms ease;
+}
+
+.st-key-advisor-suggestions button:hover {
+    border-color: var(--primary) !important;
+    background: var(--primary-soft) !important;
+    color: var(--primary) !important;
+    transform: translateY(-1px);
+}
+
+/* ---------- Main conversation card ---------- */
+
+.st-key-advisor-chat-shell {
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin-top: 0.9rem;
+    padding: 1rem 1.1rem 0.65rem !important;
+
+    border: 1px solid var(--border) !important;
+    border-radius: 1.15rem !important;
+    background: #ffffff !important;
+}
+
+/* ---------- Empty conversation state ---------- */
+
+.advisor-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 2rem 1rem 1.65rem;
+
+    text-align: center;
+}
+
+.advisor-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 3.6rem;
+    height: 3.6rem;
+    margin-bottom: 1rem;
+
+    border-radius: 1rem;
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 1.55rem;
+    font-weight: 700;
+}
+
+.advisor-empty-state h3 {
+    margin: 0 0 0.55rem;
+
+    color: var(--text);
+    font-size: 1.2rem;
+    line-height: 1.3;
+}
+
+.advisor-empty-state p {
+    max-width: 36rem;
+    margin: 0;
+
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+/* ---------- Chat messages ---------- */
+
+.st-key-advisor-chat-shell div[data-testid="stChatMessage"] {
+    margin-bottom: 0.75rem;
+    padding: 0.9rem 1rem;
+
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background: #ffffff;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatMessageContent"] {
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatMessageContent"] p {
+    margin-bottom: 0.55rem;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatMessageContent"] p:last-child {
+    margin-bottom: 0;
+}
+
+/* ---------- Chat input ---------- */
+
+.st-key-advisor-chat-shell div[data-testid="stChatInput"] {
+    margin-top: 0.8rem;
+    padding-top: 0.85rem;
+
+    border-top: 1px solid var(--border);
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatInput"] > div {
+    border: 1px solid var(--border) !important;
+    border-radius: 0.9rem !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatInput"] > div:focus-within {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 1px var(--primary) !important;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatInput"] textarea {
+    color: var(--text) !important;
+    font-size: 0.9rem !important;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatInput"] textarea::placeholder {
+    color: var(--muted) !important;
+    opacity: 0.8;
+}
+
+.st-key-advisor-chat-shell div[data-testid="stChatInputSubmitButton"] button {
+    border-radius: 0.7rem !important;
+    background: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+/* ---------- Loading state ---------- */
+
+.st-key-advisor-chat-shell div[data-testid="stSpinner"] {
+    color: var(--primary) !important;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 768px) {
+    .advisor-heading {
+        align-items: flex-start;
+    }
+
+    .advisor-heading-icon {
+        width: 3rem;
+        height: 3rem;
+        flex-basis: 3rem;
+        font-size: 1.35rem;
+    }
+
+    .advisor-heading h1 {
+        font-size: 1.75rem;
+    }
+
+    .advisor-empty-state {
+        padding: 1.5rem 0.75rem 1.25rem;
+    }
+
+    .st-key-clear-advisor-chat {
+        justify-content: flex-start;
+    }
+
+    .st-key-advisor-chat-shell {
+        padding: 0.75rem !important;
+    }
+}

@@ -3,6 +3,12 @@ import streamlit as st
 
 import analysis
 from ollama import chat
+from ui.components import render_subheader
+
+from ui.icons import (
+    CHAT_ICON,
+)
+
 
 
 MODEL_NAME = "qwen3.5:4b"
@@ -128,203 +134,218 @@ def create_advisor_tools(dataset: pd.DataFrame) -> dict:
 
 
 def render_ask_your_data(dataset: pd.DataFrame) -> None:
-# Create tools for the current dataset.
+    """Render the dataset chat interface."""
+
     available_tools = create_advisor_tools(dataset)
 
-    st.header("Ask Your Data")
-    st.write(
+    if "advisor_messages" not in st.session_state:
+        st.session_state.advisor_messages = []
 
-        "Ask questions about the uploaded dataset. "
-        "Answers will be grounded in Python computations."
-    )
+    if "advisor_pending_question" not in st.session_state:
+        st.session_state.advisor_pending_question = None
 
-    st.caption(
-        f"Dataset loaded: {dataset.shape[0]} rows "
-        f"and {dataset.shape[1]} columns."
-    )
-    chat_column, insights_column = st.columns([2, 1])
+    def queue_question(question: str) -> None:
+        """Add a question to history and queue it for analysis."""
+        st.session_state.advisor_messages.append({
+            "role": "user",
+            "content": question,
+        })
+        st.session_state.advisor_pending_question = question
 
-    with insights_column:
-        st.subheader("Findings")
+    def get_assistant_answer(user_question: str) -> str:
+        """Run the advisor model and return its answer."""
 
-        st.caption(
-            "AI-generated summary based on Python-computed results. "
-            "Review the Data Quality and Exploration tabs for full details."
-        )
-        if "key_findings_text" not in st.session_state:
-            evidence = available_tools["get_key_findings"]()
-            prompt = f"""
-            Using only the computed evidence below, write exactly 3 concise,
-            non-overlapping findings for a narrow sidebar.
+        messages_for_model = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a data-analysis assistant. "
+                    "A dataset is available only through the provided tools. "
+                    "Answer only with facts directly supported by tool results. "
+                    "Keep answers concise and use no more than three sentences. "
+                    "Do not offer to perform unavailable actions. "
+                    "Do not offer to modify, clean, or delete data. "
+                    "If the user's question is ambiguous, do not guess. "
+                    "Ask them to provide a complete and specific question. "
+                    "If a question requires a column name and none is provided, "
+                    "ask the user to specify a column. "
+                    "Never choose a column yourself. "
+                    "Treat duplicates and other anomalies as findings that require "
+                    "review, not as confirmed errors. "
+                    "For data-quality findings, mention that details are available "
+                    "in the Data Quality tab or Exploration tab."
+                ),
+            },
+            {
+                "role": "user",
+                "content": user_question,
+            },
+        ]
 
-            Formatting:
-            - Give each finding a specific bold heading that describes the insight.
-            - Never use generic headings such as "Data Quality Issue",
-            -"Numeric Pattern", or "Column Relationship".
-            - Wrap every exact dataset column name in Markdown bold using
-            double asterisks, for example: **Global_Sales**.
-            - Use one or two short sentences per finding.
-            - Keep each finding under 35 words.
+        try:
+            first_response = chat(
+                model=MODEL_NAME,
+                messages=messages_for_model,
+                tools=list(available_tools.values()),
+                think=False,
+                keep_alive="1m",
+            )
 
-            Selection:
-            - Include a data-quality issue only when it affects interpretation.
-            - Choose a genuinely useful numeric pattern, such as an unusual
-            range, skew, concentration, or potential outlier. Do not report
-            a mean by itself.
-            - Choose a meaningful non-trivial relationship.
-            - Avoid correlations between a total column and one of its
-            component columns when another useful relationship exists.
+            messages_for_model.append(first_response.message)
 
-            Accuracy:
-            - Do not claim causation, prediction, dominance, business strategy,
-            customer behaviour, or historical preference.
-            - Do not infer information that is absent from the evidence.
-            - Treat correlations involving totals and their component columns
-            cautiously because the relationship may be mechanical.
-            - If a finding is uncertain or uninformative, omit it.
+            if first_response.message.tool_calls:
+                for tool_call in first_response.message.tool_calls:
+                    tool_name = tool_call.function.name
+                    selected_tool = available_tools.get(tool_name)
 
-            Computed evidence:
-            {evidence}
-            """
+                    if selected_tool is None:
+                        tool_result = f"Unknown tool: {tool_name}"
+                    else:
+                        tool_result = selected_tool()
 
-            with st.spinner("Finding what stands out..."):
-                response = chat(
+                    messages_for_model.append({
+                        "role": "tool",
+                        "tool_name": tool_name,
+                        "content": str(tool_result),
+                    })
+
+                final_response = chat(
                     model=MODEL_NAME,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt,
-                            
-                        }
-                    ],
+                    messages=messages_for_model,
                     think=False,
-                    keep_alive="1m",
                 )
 
-            st.session_state.key_findings_text = response.message.content
+                return final_response.message.content
 
-        st.markdown(st.session_state.key_findings_text)
-    with chat_column:
-    # Create conversation history.
-        if "advisor_messages" not in st.session_state:
-            st.session_state.advisor_messages = []
+            # Allow Ollama to answer supported general questions directly.
+            direct_answer = first_response.message.content.strip()
 
-        if st.button("Clear conversation"):
+            if direct_answer:
+                return direct_answer
+
+            return (
+                "I cannot answer that question with the available "
+                "analysis tools yet."
+            )
+
+        except Exception:
+            return (
+                "I could not complete the analysis. "
+                "Please try again with a more specific question."
+            )
+
+    # Page heading.
+    heading_column, action_column = st.columns([5, 1])
+
+    with heading_column:
+        render_subheader("Ask your Data", CHAT_ICON )
+        st.caption("Ask questions about your dataset and receive answers grounded in Python computations.")
+    with action_column:
+        if st.button(
+            "Clear chat",
+            key="clear-advisor-chat",
+            use_container_width=True,
+            disabled=not st.session_state.advisor_messages,
+        ):
             st.session_state.advisor_messages = []
+            st.session_state.advisor_pending_question = None
             st.rerun()
 
-        # Display previous messages.
+    # Suggested questions.
+    st.markdown(
+        '<div class="advisor-suggestion-label">Try asking</div>',
+        unsafe_allow_html=True,
+    )
+
+    suggestions = [
+        (
+            "Summarize dataset",
+            "Summarize the key findings in this dataset.",
+        ),
+        (
+            "Check missing values",
+            "Which columns contain missing values?",
+        ),
+        (
+            "Find relationships",
+            "What are the strongest relationships in this dataset?",
+        ),
+        (
+            "Check duplicates",
+            "Does this dataset contain duplicate rows?",
+        ),
+    ]
+
+    with st.container(key="advisor-suggestions"):
+        suggestion_columns = st.columns(4)
+
+        for index, (label, question) in enumerate(suggestions):
+            with suggestion_columns[index]:
+                if st.button(
+                    label,
+                    key=f"advisor-suggestion-{index}",
+                    use_container_width=True,
+                ):
+                    queue_question(question)
+                    st.rerun()
+
+    # Conversation workspace.
+    with st.container(border=True, key="advisor-chat-shell"):
+        if not st.session_state.advisor_messages:
+            st.markdown(
+                """
+                <div class="advisor-empty-state">
+                    <div class="advisor-empty-icon">✦</div>
+                    <h3>What would you like to learn?</h3>
+                    <p>
+                        Choose one of the suggestions above or ask your own
+                        question about the uploaded dataset.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Display complete conversation history above the input.
         for message in st.session_state.advisor_messages:
-            with st.chat_message(message["role"]):
-                st.write(message["content"])
+            avatar = (
+                ":material/person:"
+                if message["role"] == "user"
+                else ":material/auto_awesome:"
+            )
 
-        user_question = st.chat_input(
-            "Ask a question about your dataset"
-        )
+            with st.chat_message(
+                message["role"],
+                avatar=avatar,
+            ):
+                st.markdown(message["content"])
 
-        if user_question:
-            user_message = {
-                "role": "user",
-                "content": user_question,
-            }
+        # Process a queued question after its user message has been rendered.
+        pending_question = st.session_state.advisor_pending_question
 
-            st.session_state.advisor_messages.append(user_message)
+        if pending_question:
+            with st.chat_message(
+                "assistant",
+                avatar=":material/auto_awesome:",
+            ):
+                with st.spinner("Analyzing your dataset..."):
+                    assistant_answer = get_assistant_answer(
+                        pending_question
+                    )
 
-            with st.chat_message("user"):
-                st.write(user_question)
-
-            messages_for_model = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a data-analysis assistant. "
-                        "A dataset is available only through the provided tools. "
-                        "Answer only with facts directly supported by tool results. "
-                        "Keep answers concise and use no more than three sentences. "
-                        "Do not offer to perform unavailable actions. "
-                        "Do not offer to modify, clean, or delete data. "
-                        "If the user's question is ambiguous, do not guess. "
-                        "Ask them to provide a complete and specific question."
-                        "If a question requires a column name and none is provided, "
-                        "ask the user to specify a column. Never choose a column yourself. "
-                        "Treat duplicates and other anomalies as findings that require "
-                        "review, not as confirmed errors. "
-                        "For data-quality findings, mention that details are available "
-                        "in the Data Quality tab or Exploration tab."
-                    ),
-                },
-                {
-                "role": "user",
-                "content": user_question,
-                }
-            ]
-
-            with st.chat_message("assistant"):
-                with st.spinner("Analyzing..."):
-                    try:
-                        # First call: Ollama chooses whether to use a tool.
-                        first_response = chat(
-                            model=MODEL_NAME,
-                            messages=messages_for_model,
-                            tools=list(available_tools.values()),
-                            think=False,
-                            keep_alive="1m",
-                        )
-
-                        messages_for_model.append(
-                            first_response.message
-                        )
-
-                        if first_response.message.tool_calls:
-                            for tool_call in (
-                                first_response.message.tool_calls
-                            ):
-                                tool_name = tool_call.function.name
-
-                                # Find the selected tool.
-                                selected_tool = available_tools.get(
-                                    tool_name
-                                )
-
-                                if selected_tool is None:
-                                    tool_result = (
-                                        f"Unknown tool: {tool_name}"
-                                    )
-                                else:
-                                    # Run the selected Python function.
-                                    tool_result = selected_tool()
-
-                                messages_for_model.append({
-                                    "role": "tool",
-                                    "tool_name": tool_name,
-                                    "content": tool_result,
-                                })
-
-                            # Second call: Ollama explains the tool result.
-                            final_response = chat(
-                                model=MODEL_NAME,
-                                messages=messages_for_model,
-                                think=False,
-                            )
-
-                            assistant_answer = (
-                                final_response.message.content
-                            )
-                        else:
-                            assistant_answer = (
-                                "I cannot answer that question with the available "
-                                "analysis tools yet."
-                            )
-                    except Exception as error:
-                        assistant_answer = (
-                            "I could not complete the analysis. "
-                            f"Details: {error}"
-                        )
-
-                st.write(assistant_answer)
-
-            # Save the answer in conversation history.
             st.session_state.advisor_messages.append({
                 "role": "assistant",
                 "content": assistant_answer,
             })
+
+            st.session_state.advisor_pending_question = None
+            st.rerun()
+
+        user_question = st.chat_input(
+            "Ask a question about your dataset",
+            key="advisor-chat-input",
+        )
+
+        if user_question:
+            queue_question(user_question)
+            st.rerun()

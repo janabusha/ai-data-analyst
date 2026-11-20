@@ -24,6 +24,7 @@ FINDINGS_ICON = load_icon("clipboard_check.svg")
 CHART_ICON = load_icon("chart.svg")
 SHIELD_ICON = load_icon("shield.svg")
 EXPLORE_ICON = load_icon("explore.svg")
+CHAT_ICON = load_icon("chat.svg")
 
 # Finding icons
 WARNING_ICON = load_icon("warning.svg")
