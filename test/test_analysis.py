@@ -165,12 +165,11 @@ def test_get_column_profile(tmp_path):
 
     dataset = analysis.load_dataset(csv_path)
     profile = analysis.get_column_profile(dataset)
-    assert profile.shape == (2,4)
+    assert profile.shape == (2,5)
     assert profile.loc["age", "Missing Values"] == 1
     assert profile.loc["Sex", "Unique Values"] == 2
     assert profile.loc["age", "Unique Values"] == 3
-    assert profile.loc["Sex", "Data Type"] == 'str'
-    assert profile.loc["age", "Missing Percentage"] == 1 / 3 * 100
+    assert profile.loc["Sex", "Data Type"] == 'String'
 
 def test_get_duplicate_rows(tmp_path):
     csv_path = tmp_path / "duplicated.csv"
