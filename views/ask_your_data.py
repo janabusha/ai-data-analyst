@@ -2,16 +2,12 @@ import pandas as pd
 import streamlit as st
 
 import analysis
-from ollama import chat
 from ui.components import render_subheader
+from model_client import create_model_client
 
 from ui.icons import (
     CHAT_ICON,
 )
-
-
-
-MODEL_NAME = "qwen3.5:4b"
 
 # Create tools that can use the uploaded dataset.
 def create_advisor_tools(dataset: pd.DataFrame) -> dict:
@@ -137,6 +133,7 @@ def render_ask_your_data(dataset: pd.DataFrame) -> None:
     """Render the dataset chat interface."""
 
     available_tools = create_advisor_tools(dataset)
+    client, model_name = create_model_client()
 
     if "advisor_messages" not in st.session_state:
         st.session_state.advisor_messages = []
@@ -154,7 +151,6 @@ def render_ask_your_data(dataset: pd.DataFrame) -> None:
 
     def get_assistant_answer(user_question: str) -> str:
         """Run the advisor model and return its answer."""
-
         messages_for_model = [
             {
                 "role": "system",
@@ -162,29 +158,26 @@ def render_ask_your_data(dataset: pd.DataFrame) -> None:
                     "You are a data-analysis assistant. "
                     "A dataset is available only through the provided tools. "
                     "Answer only with facts directly supported by tool results. "
+                    "Use the recent conversation history to understand follow-up "
+                    "questions and references such as 'that', 'it', or 'what else'. "
                     "Keep answers concise and use no more than three sentences. "
                     "Do not offer to perform unavailable actions. "
                     "Do not offer to modify, clean, or delete data. "
-                    "If the user's question is ambiguous, do not guess. "
-                    "Ask them to provide a complete and specific question. "
+                    "If the user's question remains ambiguous after considering "
+                    "the conversation history, ask for clarification. "
                     "If a question requires a column name and none is provided, "
                     "ask the user to specify a column. "
                     "Never choose a column yourself. "
                     "Treat duplicates and other anomalies as findings that require "
-                    "review, not as confirmed errors. "
-                    "For data-quality findings, mention that details are available "
-                    "in the Data Quality tab or Exploration tab."
+                    "review, not as confirmed errors."
                 ),
             },
-            {
-                "role": "user",
-                "content": user_question,
-            },
+            *st.session_state.advisor_messages[-10:],
         ]
 
         try:
-            first_response = chat(
-                model=MODEL_NAME,
+            first_response = client.chat(
+                model=model_name,
                 messages=messages_for_model,
                 tools=list(available_tools.values()),
                 think=False,
@@ -209,8 +202,8 @@ def render_ask_your_data(dataset: pd.DataFrame) -> None:
                         "content": str(tool_result),
                     })
 
-                final_response = chat(
-                    model=MODEL_NAME,
+                final_response = client.chat(
+                    model=model_name,
                     messages=messages_for_model,
                     think=False,
                 )

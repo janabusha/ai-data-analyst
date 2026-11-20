@@ -4,8 +4,8 @@ import analysis
 import chart_visuals
 import json
 import html
-from ollama import chat
 from ui.components import render_subheader
+from model_client import create_model_client
 
 from ui.icons import (
     CHART_ICON,
@@ -18,8 +18,6 @@ from ui.icons import (
     ROWS_ICON,
     COLUMNS_ICON
 )
-
-MODEL_NAME = "qwen3.5:4b"
 
 def render_findings(dataset: pd.DataFrame) -> None:
     # Calculate basic quality results.
@@ -173,6 +171,7 @@ def render_findings(dataset: pd.DataFrame) -> None:
 def choose_visualization_with_ai(
     profile: list[dict],
 ) -> dict:
+    client, model_name = create_model_client()
     prompt = f"""
     Choose one useful visualization for this dataset.
 
@@ -208,8 +207,8 @@ def choose_visualization_with_ai(
         - Prefer a chart that gives a useful high-level overview.
     """
 
-    response = chat(
-        model=MODEL_NAME,
+    response = client.chat(
+        model=model_name,
         messages=[
             {
                 "role": "user",
